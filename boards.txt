@@ -1,0 +1,107 @@
+menu.usb=USB Type
+menu.region_flags=Region
+menu.version_flags=Board version
+menu.dosfs=DOSFS
+menu.speed=CPU Speed
+menu.opt=Optimize
+
+
+
+# ---------------------------------------
+# RFThings DK-AIoT
+# ---------------------------------------
+DKAIoT.name=DKAIoT
+DKAIoT.vid.0=0x1209
+DKAIoT.pid.0=0x6202
+
+DKAIoT.upload.tool=stm32l4_dfu
+DKAIoT.upload.protocol=dfu
+DKAIoT.upload.maximum_size=245760
+DKAIoT.upload.use_1200bps_touch=true
+DKAIoT.upload.wait_for_upload_port=false
+DKAIoT.upload.native_usb=false
+
+DKAIoT.build.mcu=cortex-m4
+DKAIoT.build.f_cpu=80000000L
+DKAIoT.build.board=STM32L4_DK
+DKAIoT.build.arch=STM32L4
+DKAIoT.build.core=stm32l4
+DKAIoT.build.vid=0x1209
+DKAIoT.build.pid=0x6203
+DKAIoT.build.did=0xffff
+DKAIoT.build.usb_manufacturer="RFThings"
+DKAIoT.build.usb_product="DKAIoT"
+DKAIoT.build.extra_flags=-DSTM32L476xx -D__FPU_PRESENT=1 -march=armv7e-m -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mabi=aapcs -mslow-flash-data -fsingle-precision-constant {build.usb_flags} {build.dosfs_flags} {build.region_flags} {build.version_flags}
+DKAIoT.build.ldscript=linker_scripts/STM32L476RE_FLASH.ld
+DKAIoT.build.openocdscript=openocd_scripts/stm32l476re_dragonfly.cfg
+DKAIoT.build.variant=DKAIoT
+DKAIoT.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L4xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l476 -larm_cortexM4lf_math
+DKAIoT.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L4xx/Include" "-I{runtime.platform.path}/system/STM32L4xx/Include" 
+
+DKAIoT.menu.usb.cdc=Serial
+DKAIoT.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
+# DKAIoT.menu.usb.cdc_msc=Serial + Mass Storage
+# DKAIoT.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
+# DKAIoT.menu.usb.cdc_hid=Serial + Keyboard + Mouse
+# DKAIoT.menu.usb.cdc_hid.build.usb_type=USB_TYPE_CDC_HID
+# DKAIoT.menu.usb.cdc_msc_hid=Serial + Mass Storage + Keyboard + Mouse
+# DKAIoT.menu.usb.cdc_msc_hid.build.usb_type=USB_TYPE_CDC_MSC_HID
+DKAIoT.menu.usb.none=No USB (low-power)
+DKAIoT.menu.usb.none.build.usb_type=USB_TYPE_NONE
+
+DKAIoT.menu.region_flags.EU868=Europe 868
+DKAIoT.menu.region_flags.EU868.build.region=R_EU868
+DKAIoT.menu.region_flags.US915=US 915
+DKAIoT.menu.region_flags.US915.build.region=R_US915
+DKAIoT.menu.region_flags.AU915=AU 915
+DKAIoT.menu.region_flags.AU915.build.region=R_AU915
+DKAIoT.menu.region_flags.AS923=Asia AS923
+DKAIoT.menu.region_flags.AS923.build.region=R_AS923
+DKAIoT.menu.region_flags.IN865=India 865
+DKAIoT.menu.region_flags.IN865.build.region=R_IN865
+
+# DKAIoT.menu.version_flags.V3=V3
+# DKAIoT.menu.version_flags.V3.build.version=BOARD_LS200_V3
+# DKAIoT.menu.version_flags.V2=V2
+# DKAIoT.menu.version_flags.V2.build.version=BOARD_LS200_V2
+DKAIoT.build.version=BOARD_LS200_V3
+
+DKAIoT.build.dosfs_sdcard=0
+DKAIoT.build.dosfs_sflash=0
+
+DKAIoT.menu.speed.80=80 MHz
+DKAIoT.menu.speed.80.build.f_cpu=80000000L
+DKAIoT.menu.speed.72=72 MHz
+DKAIoT.menu.speed.72.build.f_cpu=72000000L
+DKAIoT.menu.speed.64=64 MHz
+DKAIoT.menu.speed.64.build.f_cpu=64000000L
+DKAIoT.menu.speed.48=48 MHz
+DKAIoT.menu.speed.48.build.f_cpu=48000000L
+DKAIoT.menu.speed.32=32 MHz
+DKAIoT.menu.speed.32.build.f_cpu=32000000L
+DKAIoT.menu.speed.24=24 MHz
+DKAIoT.menu.speed.24.build.f_cpu=24000000L
+DKAIoT.menu.speed.16=16 MHz
+DKAIoT.menu.speed.16.build.f_cpu=16000000L
+DKAIoT.menu.speed.8=8 MHz (No USB)
+DKAIoT.menu.speed.8.build.f_cpu=8000000L
+DKAIoT.menu.speed.4=4 MHz (No USB)
+DKAIoT.menu.speed.4.build.f_cpu=4000000L
+DKAIoT.menu.speed.2=2 MHz (No USB)
+DKAIoT.menu.speed.2.build.f_cpu=2000000L
+DKAIoT.menu.speed.1=1 MHz (No USB)
+DKAIoT.menu.speed.1.build.f_cpu=1000000L
+
+DKAIoT.menu.opt.o3=Fastest
+DKAIoT.menu.opt.o3.build.flags.optimize=-O3
+DKAIoT.menu.opt.o3.build.flags.ldspecs=
+DKAIoT.menu.opt.os=Smallest Code
+DKAIoT.menu.opt.os.build.flags.optimize=-Os
+DKAIoT.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+# DKAIoT.menu.opt.o1=Fast
+# DKAIoT.menu.opt.o1.build.flags.optimize=-O1
+# DKAIoT.menu.opt.o1.build.flags.ldspecs=
+# DKAIoT.menu.opt.o2=Faster
+# DKAIoT.menu.opt.o2.build.flags.optimize=-O2
+# DKAIoT.menu.opt.o2.build.flags.ldspecs=
+
