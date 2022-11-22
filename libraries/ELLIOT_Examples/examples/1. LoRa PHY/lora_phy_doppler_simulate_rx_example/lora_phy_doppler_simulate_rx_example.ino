@@ -26,15 +26,12 @@
 #define FREQ_STEP_IN_HZ 5000             // Hz
 #define CENTER_FREQUENCY_IN_HZ 868100000 // Hz
 #define DOPPLER_BANDWIDTH_IN_HZ 100000   // Hz
-#define TX_INTERVAL 1                    // Seconds
 
 rfthings_sx126x sx126x(E22_NSS, E22_NRST, E22_BUSY, E22_DIO1, E22_RXEN);
 rft_status_t status;
 
 char payload[255];
 uint32_t payload_len;
-
-uint32_t current_freq_offset = 0;
 
 void setup()
 {
@@ -53,74 +50,71 @@ void setup()
     Serial.println(rft_status_to_str(status));
 
     // LoRa parameters
-    sx126x.set_tx_power(22);
-    sx126x.set_force_ldro(true);
+    sx126x.set_frequency(868100000);
     sx126x.set_frequency(CENTER_FREQUENCY_IN_HZ);
     sx126x.set_spreading_factor(RFT_LORA_SPREADING_FACTOR_9);
     sx126x.set_bandwidth(RFT_LORA_BANDWIDTH_250KHZ);
     sx126x.set_coding_rate(RFT_LORA_CODING_RATE_4_5);
     sx126x.set_syncword(RFT_LORA_SYNCWORD_PUBLIC);
-
-    current_freq_offset = 0;
 }
 
 void loop()
 {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(125);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(50);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(125);
-    digitalWrite(LED_BUILTIN, LOW);
+    Serial.print("Listening for LoRa PHY message: ");
 
-    Serial.print("Sending LoRa PHY message: ");
-
-    recalculate_frequency();
-    build_payload();
-    status = sx126x.send_lora((byte *)payload, payload_len, 2000, NULL);
+    status = sx126x.receive_lora((byte *)payload, payload_len, 2000, NULL);
     Serial.println(rft_status_to_str(status));
 
-    current_freq_offset++;
-
-    delay(TX_INTERVAL * 1000);
-}
-
-void build_payload(void)
-{
-    payload[0] = 0xff & current_freq_offset;
-    payload[1] = 0xff & current_freq_offset;
-
-    payload_len = 2;
-}
-
-void recalculate_frequency(void)
-{
-    if ((current_freq_offset * FREQ_STEP_IN_HZ) > DOPPLER_BANDWIDTH_IN_HZ)
+    if (status == RFT_STATUS_OK)
     {
-        current_freq_offset = 0;
+        Serial.println("receive downlink packet");
+        Serial.print("    RSSI: ");
+        Serial.println(sx126x.get_rssi());
+        Serial.print("    SNR: ");
+        Serial.println(sx126x.get_snr());
+        Serial.print("    Signal rssi: ");
+        Serial.println(sx126x.get_signal_rssi());
+
+        uint8_t len = sx126x.get_rx_length();
+
+        if (len == 2)
+        {
+            Serial.print("Downlink payload ");
+            Serial.print(len);
+            Serial.print(" bytes: ");
+            Serial.print(payload[0], HEX);
+            Serial.print(" ");
+            Serial.println();
+
+            uint16_t offset_index = payload[0] & 0xff;
+
+            int32_t freq_offset = 0;
+            freq_offset -= (DOPPLER_BANDWIDTH_IN_HZ / 2);
+            freq_offset += (offset_index * FREQ_STEP_IN_HZ);
+
+            Serial.print("Packet received at offset of ");
+            Serial.print(freq_offset);
+            Serial.println(" Hz\n\n\n");
+        }
+        else
+        {
+            Serial.print("Downlink payload ");
+            Serial.print(len);
+            Serial.print(" bytes: ");
+            for (int i = 0; i < len; i++)
+            {
+                Serial.print(payload[i], HEX);
+                Serial.print(" ");
+            }
+            Serial.println();
+        }
+
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(125);
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(50);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(125);
+        digitalWrite(LED_BUILTIN, LOW);
     }
-
-    uint32_t expected_frequency = CENTER_FREQUENCY_IN_HZ;
-    expected_frequency -= (DOPPLER_BANDWIDTH_IN_HZ / 2);
-    expected_frequency += (current_freq_offset * FREQ_STEP_IN_HZ);
-    sx126x.set_frequency(expected_frequency);
-
-    Serial.print("> Step ");
-    Serial.print(current_freq_offset);
-    Serial.println(" :");
-
-    Serial.print("          Expected frequency: ");
-    Serial.print(expected_frequency);
-    Serial.println(" Hz");
-
-    // Estimate the actual frequency due to hz_to_pll_step conversion
-    double actual_frequency = sx126x_convert_freq_in_hz_to_pll_step(expected_frequency);
-    actual_frequency *= (32000000UL); // SX126X_XTAL_FREQ;
-    actual_frequency /= (1 << 25);
-
-
-    Serial.print("          Actual frequency:   ");
-    Serial.print(actual_frequency);
-    Serial.println(" Hz");
 }
