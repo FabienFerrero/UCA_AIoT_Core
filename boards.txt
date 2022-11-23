@@ -12,7 +12,7 @@ menu.opt=Optimize
 # ---------------------------------------
 DKAIoT.name=DKAIoT
 DKAIoT.vid.0=0x1209
-DKAIoT.pid.0=0x6202
+DKAIoT.pid.0=0x6203
 
 DKAIoT.upload.tool=stm32l4_dfu
 DKAIoT.upload.protocol=dfu
