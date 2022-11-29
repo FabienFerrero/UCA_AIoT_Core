@@ -87,7 +87,9 @@ void loop()
     build_payload();
     status = sx126x.send_uplink((byte *)payload, payload_len, NULL, NULL);
 
-    if (status == RFT_STATUS_OK)
+    switch (status)
+    {
+    case RFT_STATUS_OK:
     {
         Serial.println("receive downlink packet");
         Serial.print("    RSSI: ");
@@ -105,9 +107,22 @@ void loop()
         }
         Serial.println();
     }
-    else
+    break;
+    case RFT_STATUS_TX_TIMEOUT:
+    {
+        Serial.println("Fail to send packet!");
+    }
+    break;
+    case RFT_STATUS_RX_TIMEOUT:
+    {
+        Serial.println("TX Done, No downlink packet!");
+    }
+    break;
+    default:
     {
         Serial.println(rft_status_to_str(status));
+    }
+    break;
     }
 
     delay(TX_INTERVAL * 1000);
