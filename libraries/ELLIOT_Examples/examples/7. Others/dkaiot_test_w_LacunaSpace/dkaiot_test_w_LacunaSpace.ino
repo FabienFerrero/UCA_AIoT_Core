@@ -25,7 +25,7 @@
 #include <RTC.h>
 #include <time.h>
 #include <SparkFun_Ublox_Arduino_Library.h> // http://librarymanager/All#SparkFun_Ublox
-#include <Sgp4.h>
+#include <Sgp4.h> // https://github.com/Hopperpop/Sgp4-Library
 
 /**************** PROJECT CONFIGURATION ****************/
 /**
@@ -42,8 +42,8 @@
 
 // Update the latest TLE from here https://www.n2yo.com/satellite/?s=47948 or Space-Track.com
 char satname[] = "LACUNASAT-2B";
-char tle_line1[] = "1 47948U 21022S   23075.22826226  .00042401  00000-0  20646-2 0  9997"; // Line one from the TLE data
-char tle_line2[] = "2 47948  97.5140 336.8426 0013564 292.4188  67.5609 15.18153033108995"; // Line two from the TLE data
+char tle_line1[] = "1 47948U 21022S   23075.29417362  .00041689  00000-0  20299-2 0  9992"; // Line one from the TLE data
+char tle_line2[] = "2 47948  97.5139 336.9081 0013558 292.1396  67.8398 15.18157629109008"; // Line two from the TLE data
 
 // Terrestrial device
 static uint8_t nwkS_key[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -480,6 +480,8 @@ void send_terrestrial_status_packet(void)
     status = sx126x.send_uplink((byte *)payload, payload_len, NULL, NULL);
     LOG_D_NL(rft_status_to_str(status));
 
+    delay(1000);
+
     next_status_packet = RTC.getEpoch() + TERRESTRIAL_STATUS_PACKET_PERIOD_S;
 }
 
@@ -493,14 +495,15 @@ void send_satellite_packet(void)
     uint32_t epoch_now = RTC.getEpoch();
     while ((epoch_now >= next_satellite_pass_start) && (epoch_now < next_satellite_pass_stop))
     {
-        epoch_now = RTC.getEpoch();
-
         generate_packet(true);
         LOG_D("Sending LR-FHSS message: ");
         status = sx126x.send_lorawan_over_lrfhss((byte *)payload, payload_len);
         LOG_D_NL(rft_status_to_str(status));
 
+        delay(1000);
+
         set_board_sleep(RTC.getEpoch() + SAT_PACKET_PERIOD_S);
+        epoch_now = RTC.getEpoch();
     }
 }
 
@@ -534,27 +537,39 @@ void set_board_sleep(uint32_t wakeup_epoch)
     uint32_t delay_duration = wakeup_epoch - RTC.getEpoch();
     delay(delay_duration * 1000);
 #else
-    time_t t;
-    struct tm tm;
+    uint32_t now_epoch = RTC.getEpoch();
+    if (now_epoch >= wakeup_epoch)
+    {
+        return;
+    }
+    else if (wakeup_epoch - now_epoch <= 5)
+    {
+        delay((wakeup_epoch - now_epoch) * 1000);
+    }
+    else
+    {
+        time_t t;
+        struct tm tm;
 
-    t = (time_t)wakeup_epoch;
-    gmtime_r(&t, &tm);
+        t = (time_t)wakeup_epoch;
+        gmtime_r(&t, &tm);
 
-    RTC.setAlarmTime(tm.tm_hour, tm.tm_min, tm.tm_sec);
-    RTC.setAlarmDay(tm.tm_mday);
+        RTC.setAlarmTime(tm.tm_hour, tm.tm_min, tm.tm_sec);
+        RTC.setAlarmDay(tm.tm_mday);
 
-    RTC.enableAlarm(RTC.MATCH_HHMMSS);
-    RTC.attachInterrupt(rtcAlarmMatch);
+        RTC.enableAlarm(RTC.MATCH_HHMMSS);
+        RTC.attachInterrupt(rtcAlarmMatch);
 
-    digitalWrite(LS_GPS_ENABLE, LOW);
-    digitalWrite(LS_VERSION_ENABLE, LOW);
-    digitalWrite(LS_GPS_V_BCKP, HIGH);
-    digitalWrite(SD_ON_OFF, LOW);
+        digitalWrite(LS_GPS_ENABLE, LOW);
+        digitalWrite(LS_VERSION_ENABLE, LOW);
+        digitalWrite(LS_GPS_V_BCKP, HIGH);
+        digitalWrite(SD_ON_OFF, LOW);
 
-    SPI.end();
-    delay(10);
-    STM32.stop();
+        SPI.end();
+        delay(10);
+        STM32.stop();
 
-    SPI.begin();
+        SPI.begin();
+    }
 #endif
 }
